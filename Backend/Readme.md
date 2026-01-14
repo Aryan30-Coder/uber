@@ -247,7 +247,8 @@ Validation rules (applied by express-validator in the route):
       "capacity": 4,
       "vehicleType": "Car"
     },
-    "socketId": null
+    "socketId": null,
+    "status": "inactive"
   }
 }
 ```
@@ -261,3 +262,103 @@ Note: the returned `captain` object comes from the created document; `password` 
 - Password hashing: `captainModel.hashPassword`
 - Token generation: instance method `captain.generateAuthToken()`
 - Route handler: [`captainController.registerCaptain`](./contollers/cpatain.controller.js)
+
+## POST /captain/login
+
+Authenticate an existing captain.
+
+- Route: POST /captain/login
+- Defined in: [./routes/captian.routes.js](./routes/captian.routes.js)
+- Controller: [`captainController.loginCaptain`](./contollers/cpatain.controller.js)
+- Model: [`captainModel`](./models/captain.model.js)
+
+### Description
+Verifies credentials (finds captain with email, selects password, compares hash). On success returns a JWT and the captain object and sets cookie `token`.
+
+### Request (application/json)
+```json
+{
+  "email": "john@example.com",    // required, valid email
+  "password": "plainPassword"     // required, string, min length: 6
+}
+```
+
+
+### Successful response
+- Status: 200 OK
+- Body:
+```json
+{
+  "token": "<jwt-token>",
+  "captain": {
+    "_id": "<captainId>",
+    "fullname": { "firstname": "John", "lastname": "Doe" },
+    "email": "john@example.com",
+    "vehicle": { "color": "Blue", "plate": "ABC123", "capacity": 4, "vehicleType": "Car" },
+    "socketId": null,
+    "status": "inactive"
+  }
+}
+```
+
+### Error responses
+- 400 Bad Request — validation failed (response contains errors array).
+- 401 Unauthorized — invalid email or password.
+- 500 Internal Server Error — unexpected errors.
+
+### Notes
+- Token via captain.generateAuthToken().
+
+
+## POST /captain/profile
+
+- Route: GET /captain/profile
+- Controller: captainController.getCaptainProfile
+- Middleware: authMiddleWare.authCaptain
+
+### Description
+Returns authenticated captain (middleware reads JWT from cookie token or header and attaches req.captain).
+
+### Request
+no body. Provide JWT in cookie token or header.
+
+### Successful response
+- Status: 200 OK
+```json
+{
+  "_id": "<captainId>",
+  "fullname": { "firstname": "John", "lastname": "Doe" },
+  "email": "john@example.com",
+  "vehicle": { "color": "Blue", "plate": "ABC123", "capacity": 4, "vehicleType": "Car" },
+  "socketId": null,
+  "status": "inactive"
+}
+```
+
+### Error responses
+- 401 Unauthorized — missing/invalid/blacklisted token.
+- 500 Internal Server Error.
+
+## POST /captain/logout
+
+- Route: GET /captain/logout
+- Controller: captainController.logoutCaptain
+- Middleware: authMiddleWare.authCaptain
+
+### Description
+Blacklists token and clears token cookie.
+
+### Request
+no body. Provide JWT in cookie token or header.
+
+### Successful response
+- Status: 200 OK
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+### Error responses
+- 401 Unauthorized — missing/invalid token.
+- 500 Internal Server Error.
