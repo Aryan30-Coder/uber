@@ -133,7 +133,7 @@ const Home = () => {
       <div className="h-screen w-screen">
         {/* image for temporary use  */}
         <img
-          className="h-full w-full object-cover"
+          className="h-[70%] w-full object-cover"
           src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif"
           alt=""
         />
